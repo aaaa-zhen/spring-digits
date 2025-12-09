@@ -1,0 +1,162 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #d4a574 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.timer-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.timer-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.timer-icon svg {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.digit-group {
+  display: flex;
+}
+
+.digit {
+  width: 36px;
+  height: 56px;
+  overflow: hidden;
+  position: relative;
+}
+
+.digit-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.digit-wrapper span {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: 300;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
+.separator {
+  font-size: 42px;
+  font-weight: 300;
+  color: #1f2937;
+  margin: 0 4px;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.3; }
+}
+
+.timer-text {
+  max-width: 180px;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controls button {
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#startBtn {
+  background: linear-gradient(135deg, #f472b6, #fb923c);
+  color: white;
+}
+
+#startBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(244, 114, 182, 0.4);
+}
+
+#resetBtn {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+#resetBtn:hover {
+  background: #e5e7eb;
+}
+
+#timeInput {
+  width: 80px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#timeInput:focus {
+  border-color: #f472b6;
+}
+
+.input-label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 数字过渡时的模糊效果 */
+.digit-wrapper.animating span {
+  filter: blur(0.5px);
+}
