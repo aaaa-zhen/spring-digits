@@ -61,15 +61,15 @@ class SpringNumber {
         -webkit-mask-image: linear-gradient(
           to bottom,
           transparent 0%,
-          black 20%,
-          black 80%,
+          black 40%,
+          black 60%,
           transparent 100%
         );
         mask-image: linear-gradient(
           to bottom,
           transparent 0%,
-          black 20%,
-          black 80%,
+          black 40%,
+          black 60%,
           transparent 100%
         );
       }
@@ -189,6 +189,16 @@ class SpringNumber {
     }
   }
 
+  _applyStyles() {
+    for (const d of this.digits) {
+      const blur = Math.min(Math.abs(d.y.v) / 600, 5)
+      const opacity = Math.max(0, Math.min(1, d.opacity.pos))
+      d.wrapper.style.transform = `translateY(${d.y.pos}px)`
+      d.wrapper.style.filter = blur > 0.1 ? `blur(${blur}px)` : 'none'
+      d.wrapper.style.opacity = opacity
+    }
+  }
+
   _scheduleRender() {
     if (this.rafId === null) {
       this.rafId = requestAnimationFrame(this._render)
@@ -200,7 +210,19 @@ class SpringNumber {
     if (!d) return
 
     const targetY = -targetDigit * this.options.digitHeight
-    if (Math.abs(d.y.dest - targetY) < 0.1) return
+    // allow animation even if target digit is the same, so cascaded carries still move
+    if (Math.abs(d.y.dest - targetY) < 0.1) {
+      const bounce = this.options.digitHeight * 0.35
+      d.y.dest = targetY - bounce
+      d.opacity.dest = 0.7
+      this._scheduleRender()
+      setTimeout(() => {
+        d.y.dest = targetY
+        d.opacity.dest = 1
+        this._scheduleRender()
+      }, 70)
+      return
+    }
 
     d.opacity.dest = 0.3
     setTimeout(() => {
@@ -219,9 +241,24 @@ class SpringNumber {
       this._createDigits(str.length)
       for (let i = 0; i < str.length; i++) {
         const targetY = -parseInt(str[i]) * this.options.digitHeight
-        this.digits[i].y.pos = targetY
-        this.digits[i].y.dest = targetY
+        if (animate) {
+          // start slightly below then spring into place so even zeros move
+          this.digits[i].y.pos = targetY + this.options.digitHeight
+          this.digits[i].y.dest = targetY
+          this.digits[i].opacity.pos = 0
+          this.digits[i].opacity.dest = 1
+        } else {
+          this.digits[i].y.pos = targetY
+          this.digits[i].y.dest = targetY
+        }
       }
+      // sync DOM immediately so新位数不会先闪现默认的 0
+      this._applyStyles()
+      if (animate) {
+        this._scheduleRender()
+      }
+    } else if (!animate) {
+      this._applyStyles()
     }
 
     if (animate) {

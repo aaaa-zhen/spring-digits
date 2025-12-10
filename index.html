@@ -122,6 +122,16 @@
     let digits = []
     let animatedUntil = null
     let rafId = null
+    function applyStyles() {
+      for (const d of digits) {
+        const blur = Math.min(Math.abs(d.y.v) / 600, 5)
+        const opacity = Math.max(0, Math.min(1, d.opacity.pos))
+
+        d.wrapper.style.transform = `translateY(${d.y.pos}px)`
+        d.wrapper.style.filter = blur > 0.1 ? `blur(${blur}px)` : 'none'
+        d.wrapper.style.opacity = opacity
+      }
+    }
 
     function createDigits(count) {
       display.innerHTML = ''
@@ -230,6 +240,7 @@
           digits[i].y.pos = targetY
           digits[i].y.dest = targetY
         }
+        applyStyles()
       }
 
       for (let i = 0; i < str.length; i++) {

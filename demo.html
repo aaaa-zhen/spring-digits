@@ -34,11 +34,48 @@
       border-radius: 50%;
       cursor: grab;
     }
+    .input-group { display: flex; gap: 12px; }
+    #numberInput, #addInput, #smoothInput {
+      width: 100px;
+      padding: 10px 14px;
+      font-size: 16px;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+      text-align: center;
+      outline: none;
+    }
+    #numberInput:focus, #addInput:focus, #smoothInput:focus { border-color: #888; }
+    #goBtn, #addBtn, #smoothBtn {
+      padding: 10px 24px;
+      font-size: 16px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    #goBtn:hover, #addBtn:hover, #smoothBtn:hover { opacity: 0.8; }
   </style>
 </head>
 <body>
   <div id="number"></div>
   <input type="range" class="slider" id="slider" min="0" max="9999" value="1234">
+
+  <div class="input-group">
+    <input type="number" id="numberInput" min="0" max="9999" value="1234" placeholder="0-9999">
+    <button id="goBtn">Jump</button>
+  </div>
+  <div class="input-group">
+    <input type="number" id="smoothInput" min="0" max="9999" value="1234" placeholder="direct">
+    <button id="smoothBtn">Direct Go</button>
+  </div>
+  <div class="input-group">
+    <input type="number" id="addInput" min="0" max="9999" value="0" placeholder="+ amount">
+    <button id="addBtn">Add</button>
+  </div>
 
   <script src="spring-number.js"></script>
   <script>
@@ -46,9 +83,91 @@
       value: 1234,
     })
 
+    const sliderEl = document.getElementById('slider')
+    const inputEl = document.getElementById('numberInput')
+    const goBtn = document.getElementById('goBtn')
+    const smoothInputEl = document.getElementById('smoothInput')
+    const smoothBtn = document.getElementById('smoothBtn')
+    const addInputEl = document.getElementById('addInput')
+    const addBtn = document.getElementById('addBtn')
+    let tweenRaf = null
+
+    // --- helpers / components ---
+    const makeControl = (inputEl, buttonEl, handler) => {
+      const run = () => handler(parseInt(inputEl.value))
+      buttonEl.addEventListener('click', run)
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') run()
+      })
+      return { set: (value) => { inputEl.value = value } }
+    }
+
+    const clampValue = (value) => {
+      const num = Number(value)
+      if (!Number.isFinite(num)) return null
+      return Math.max(0, Math.min(9999, num))
+    }
+
+    const cancelTween = () => {
+      if (tweenRaf !== null) {
+        cancelAnimationFrame(tweenRaf)
+        tweenRaf = null
+      }
+    }
+
+    const setValue = (value) => {
+      cancelTween()
+      const clamped = clampValue(value)
+      if (clamped === null) return
+      num.setValue(clamped)
+      sliderEl.value = clamped
+      jumpControl.set(clamped)
+      directControl.set(clamped)
+      addControl.set(clamped)
+    }
+
+    const animateTo = (value) => {
+      cancelTween()
+      const target = clampValue(value)
+      if (target === null) return
+      const start = num.getValue()
+      if (start === target) return
+
+      const duration = 600
+      const easeOut = (t) => 1 - Math.pow(1 - t, 3)
+      const startTime = performance.now()
+
+      const step = (now) => {
+        const t = Math.min((now - startTime) / duration, 1)
+        const next = Math.round(start + (target - start) * easeOut(t))
+        num.setValue(next)
+        sliderEl.value = next
+        jumpControl.set(next)
+        directControl.set(next)
+        addControl.set(next)
+        if (t < 1) {
+          tweenRaf = requestAnimationFrame(step)
+        } else {
+          tweenRaf = null
+        }
+      }
+
+      tweenRaf = requestAnimationFrame(step)
+    }
+
+    const addAmount = (value) => {
+      const delta = clampValue(value)
+      if (delta === null) return
+      animateTo(num.getValue() + delta)
+    }
+
     document.getElementById('slider').addEventListener('input', (e) => {
-      num.setValue(parseInt(e.target.value))
+      setValue(parseInt(e.target.value))
     })
+
+    const jumpControl = makeControl(inputEl, goBtn, (value) => setValue(value))
+    const directControl = makeControl(smoothInputEl, smoothBtn, (value) => setValue(value))
+    const addControl = makeControl(addInputEl, addBtn, (value) => addAmount(value))
   </script>
 </body>
 </html>
